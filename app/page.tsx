@@ -10,9 +10,9 @@ function film(x:any):Movie{return {key:'film-'+x.id,title:x.title,description:cl
 const api:Record<string,string>={'TV Shows':'https://api.tvmaze.com/shows?page=0',Anime:'https://api.jikan.moe/v4/top/anime?limit=25',Films:'https://ghibliapi.vercel.app/films'};
 const readList=():Movie[]=>{try{return JSON.parse(localStorage.getItem('cinex-v2-list')||'[]')}catch{return []}};
 export default function Home(){
-const [category,setCategory]=useState<Category>('TV Shows'),[movies,setMovies]=useState<Movie[]>([]),[saved,setSaved]=useState<Movie[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[search,setSearch]=useState(''),[genre,setGenre]=useState('All genres'),[sort,setSort]=useState('featured'),[limit,setLimit]=useState(20),[selected,setSelected]=useState<Movie|null>(null),[trailer,setTrailer]=useState(false),[refresh,setRefresh]=useState(0);
-useEffect(()=>{setSaved(readList())},[]);
-useEffect(()=>{localStorage.setItem('cinex-v2-list',JSON.stringify(saved))},[saved]);
+const [category,setCategory]=useState<Category>('TV Shows'),[movies,setMovies]=useState<Movie[]>([]),[saved,setSaved]=useState<Movie[]>([]),[listHydrated,setListHydrated]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[search,setSearch]=useState(''),[genre,setGenre]=useState('All genres'),[sort,setSort]=useState('featured'),[limit,setLimit]=useState(20),[selected,setSelected]=useState<Movie|null>(null),[trailer,setTrailer]=useState(false),[refresh,setRefresh]=useState(0);
+useEffect(()=>{setSaved(readList());setListHydrated(true)},[]);
+useEffect(()=>{if(listHydrated)localStorage.setItem('cinex-v2-list',JSON.stringify(saved))},[saved,listHydrated]);
 useEffect(()=>{if(category==='My List'){setMovies(saved);setLoading(false);return}const ctrl=new AbortController();setLoading(true);setError('');fetch(api[category],{signal:ctrl.signal}).then(r=>{if(!r.ok)throw new Error('API '+r.status);return r.json()}).then(raw=>{const data=category==='TV Shows'?raw.slice(0,160).map(tv):category==='Anime'?raw.data.map(anime):raw.map(film);setMovies(data);setLoading(false)}).catch(e=>{if(e.name!=='AbortError'){setError('The collection is temporarily unavailable. Please retry.');setLoading(false)}});return()=>ctrl.abort()},[category,refresh]);
 useEffect(()=>{if(category==='My List')setMovies(saved)},[saved,category]);
 useEffect(()=>{setSearch('');setGenre('All genres');setLimit(20);setSort('featured')},[category]);
