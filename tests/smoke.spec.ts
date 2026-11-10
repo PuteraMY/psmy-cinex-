@@ -38,14 +38,20 @@ test('watchlist persists after reload and can be removed', async ({ page }) => {
 });
 
 test('API failure displays retry and recovers', async ({ page }) => {
-  let failed = false;
+  // Keep the failure active until the retry is explicitly requested.
+  // React Strict Mode can mount effects twice in development, so a
+  // "fail first request only" mock can recover before the error is visible.
   await page.unroute('https://api.tvmaze.com/shows?page=0');
-  await page.route('https://api.tvmaze.com/shows?page=0', async route => {
-    if (!failed) { failed = true; await route.fulfill({ status: 503, body: 'Unavailable' }); }
-    else await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(sampleShows) });
-  });
+  await page.route('https://api.tvmaze.com/shows?page=0', async route =>
+    route.fulfill({ status: 503, contentType: 'text/plain', body: 'Unavailable' })
+  );
   await page.goto('/');
   await expect(page.getByText('The collection is temporarily unavailable. Please retry.')).toBeVisible();
+
+  await page.unroute('https://api.tvmaze.com/shows?page=0');
+  await page.route('https://api.tvmaze.com/shows?page=0', async route =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(sampleShows) })
+  );
   await page.getByRole('button', { name: 'TRY AGAIN' }).click();
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
 });
