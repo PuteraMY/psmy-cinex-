@@ -64,3 +64,24 @@ test('screening room has a real video element and declared MP4 source', async ({
   // This is not a playback certification: network-dependent play/pause/seek/fullscreen
   // must be tested against the actual production video host in a real browser.
 });
+
+
+test('details dialog closes with Escape and restores the collection', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
+  await page.getByRole('button', { name: 'Explore CINEX QA Alpha' }).click();
+  await expect(page.getByRole('dialog', { name: 'CINEX QA Alpha' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
+});
+
+test('navigation and discovery controls remain within mobile viewport', async ({ page }, testInfo) => {
+  if (!testInfo.project.name.startsWith('mobile')) test.skip();
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/');
+  await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'My List' })).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Search titles' })).toBeVisible();
+  const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(documentWidth).toBeLessThanOrEqual(320);
+});
