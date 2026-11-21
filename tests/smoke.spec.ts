@@ -64,3 +64,19 @@ test('screening room has a real video element and declared MP4 source', async ({
   // This is not a playback certification: network-dependent play/pause/seek/fullscreen
   // must be tested against the actual production video host in a real browser.
 });
+
+test('screening room handles video host errors with retry and a direct source', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+
+  // Simulate the browser media error deterministically, without depending on the external host.
+  await player.evaluate(element => element.dispatchEvent(new Event('error')));
+  const recovery = page.getByRole('alert');
+  await expect(recovery).toContainText('The film could not load');
+  await expect(recovery.getByRole('link', { name: 'OPEN ORIGINAL VIDEO' }))
+    .toHaveAttribute('href', 'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4');
+
+  await recovery.getByRole('button', { name: 'RETRY PLAYBACK' }).click();
+  await expect(page.locator('#screening video')).toHaveCount(1);
+});
