@@ -64,3 +64,25 @@ test('screening room has a real video element and declared MP4 source', async ({
   // This is not a playback certification: network-dependent play/pause/seek/fullscreen
   // must be tested against the actual production video host in a real browser.
 });
+
+
+test('movie details dialog traps keyboard focus and restores the opening button', async ({ page }) => {
+  await page.goto('/');
+  const opener = page.getByRole('button', { name: 'Explore CINEX QA Alpha' });
+  await expect(opener).toBeVisible();
+  await opener.click();
+
+  const dialog = page.getByRole('dialog', { name: 'CINEX QA Alpha' });
+  await expect(dialog).toBeVisible();
+  const close = dialog.getByRole('button', { name: 'Close' });
+  await expect(close).toBeFocused();
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialog.locator('a').last()).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(close).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});
