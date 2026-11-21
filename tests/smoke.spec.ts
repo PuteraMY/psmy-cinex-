@@ -122,3 +122,18 @@ test('screening room handles video host errors with retry and a direct source', 
   await recovery.getByRole('button', { name: 'RETRY PLAYBACK' }).click();
   await expect(page.locator('#screening video')).toHaveCount(1);
 });
+
+
+test('screening room provides a visible Play control and updates state on play', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+  await player.evaluate(element => {
+    (element as HTMLVideoElement).play = function () {
+      this.dispatchEvent(new Event('play'));
+      return Promise.resolve();
+    };
+  });
+  await page.getByRole('button', { name: 'Play film' }).click();
+  await expect(page.getByRole('button', { name: 'Pause film' })).toBeVisible();
+});
