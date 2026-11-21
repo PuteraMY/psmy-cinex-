@@ -7,3 +7,7 @@
 .playback-recovery{margin-top:18px;border:1px solid #e6b57455;background:#251e1a;border-radius:12px;padding:18px 20px}
 .playback-recovery p{margin:0;color:#f0d5bf}
 .playback-recovery .actions{margin-top:14px}
+
+/* Explicit controls keep playback discoverable on mobile and in keyboard-only use. */
+.screening-controls{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:18px}
+.screening-controls span{font-size:12px;color:var(--muted);line-height:1.6}
