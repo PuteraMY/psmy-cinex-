@@ -64,3 +64,76 @@ test('screening room has a real video element and declared MP4 source', async ({
   // This is not a playback certification: network-dependent play/pause/seek/fullscreen
   // must be tested against the actual production video host in a real browser.
 });
+
+
+test('movie details dialog traps keyboard focus and restores the opening button', async ({ page }) => {
+  await page.goto('/');
+  const opener = page.getByRole('button', { name: 'Explore CINEX QA Alpha' });
+  await expect(opener).toBeVisible();
+  await opener.click();
+
+  const dialog = page.getByRole('dialog', { name: 'CINEX QA Alpha' });
+  await expect(dialog).toBeVisible();
+  const close = dialog.getByRole('button', { name: 'Close' });
+  await expect(close).toBeFocused();
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialog.locator('a').last()).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(close).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});
+
+test('details dialog closes with Escape and restores the collection', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
+  await page.getByRole('button', { name: 'Explore CINEX QA Alpha' }).click();
+  await expect(page.getByRole('dialog', { name: 'CINEX QA Alpha' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
+});
+
+test('navigation and discovery controls remain within mobile viewport', async ({ page }, testInfo) => {
+  if (!testInfo.project.name.startsWith('mobile')) test.skip();
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/');
+  await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'My List' })).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Search titles' })).toBeVisible();
+  const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(documentWidth).toBeLessThanOrEqual(320);
+});
+
+test('screening room handles video host errors with retry and a direct source', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+
+  // Simulate the browser media error deterministically, without depending on the external host.
+  await player.evaluate(element => element.dispatchEvent(new Event('error')));
+  const recovery = page.locator('#screening .playback-recovery');
+  await expect(recovery).toContainText('The film could not load');
+  await expect(recovery.getByRole('link', { name: 'OPEN ORIGINAL VIDEO' }))
+    .toHaveAttribute('href', 'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4');
+
+  await recovery.getByRole('button', { name: 'RETRY PLAYBACK' }).click();
+  await expect(page.locator('#screening video')).toHaveCount(1);
+});
+
+
+test('screening room provides a visible Play control and updates state on play', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+  await player.evaluate(element => {
+    (element as HTMLVideoElement).play = function () {
+      this.dispatchEvent(new Event('play'));
+      return Promise.resolve();
+    };
+  });
+  await page.getByRole('button', { name: 'Play film' }).click();
+  await expect(page.getByRole('button', { name: 'Pause film' })).toBeVisible();
+});
