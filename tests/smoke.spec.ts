@@ -72,7 +72,7 @@ test('screening room handles video host errors with retry and a direct source', 
 
   // Simulate the browser media error deterministically, without depending on the external host.
   await player.evaluate(element => element.dispatchEvent(new Event('error')));
-  const recovery = page.getByRole('alert');
+  const recovery = page.locator('#screening .playback-recovery');
   await expect(recovery).toContainText('The film could not load');
   await expect(recovery.getByRole('link', { name: 'OPEN ORIGINAL VIDEO' }))
     .toHaveAttribute('href', 'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4');
