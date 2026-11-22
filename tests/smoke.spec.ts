@@ -58,6 +58,7 @@ test('API failure displays retry and recovers', async ({ page }) => {
 
 test('screening room has a real video element and declared MP4 source', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   await page.getByRole('button', { name: /WATCH A FILM/ }).click();
   await expect(page.locator('video')).toBeVisible();
   await expect(page.locator('video source')).toHaveAttribute('type', 'video/mp4');
@@ -109,6 +110,7 @@ test('navigation and discovery controls remain within mobile viewport', async ({
 
 test('screening room handles video host errors with retry and a direct source', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   const player = page.locator('#screening video');
   await expect(player).toBeVisible();
 
@@ -126,6 +128,7 @@ test('screening room handles video host errors with retry and a direct source', 
 
 test('screening room provides a visible Play control and updates state on play', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   const player = page.locator('#screening video');
   await expect(player).toBeVisible();
   await player.evaluate(element => {
@@ -141,6 +144,7 @@ test('screening room provides a visible Play control and updates state on play',
 
 test('screening room pause control reflects the paused video state', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   const player = page.locator('#screening video');
   await expect(player).toBeVisible();
 
@@ -163,6 +167,7 @@ test('screening room pause control reflects the paused video state', async ({ pa
 
 test('screening room recovers when the browser rejects play', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   const player = page.locator('#screening video');
   await expect(player).toBeVisible();
   await player.evaluate(element => {
@@ -180,6 +185,7 @@ test('screening room recovers when the browser rejects play', async ({ page }) =
 
 test('screening selects an available MP4 mirror and exposes progress/source status', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   await expect(page.locator('#screening video source')).toHaveAttribute(
     'src', 'https://uploads.video-commander.com/sample/BigBuckBunny.mp4'
   );
@@ -189,6 +195,7 @@ test('screening selects an available MP4 mirror and exposes progress/source stat
 
 test('failed film can switch source without refreshing the whole page', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   const player = page.locator('#screening video');
   await expect(player).toBeVisible();
 
@@ -204,6 +211,7 @@ test('failed film can switch source without refreshing the whole page', async ({
 
 test('play request does not claim playback before the playing event', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
   const player = page.locator('#screening video');
   await expect(player).toBeVisible();
   await player.evaluate(element => {
@@ -212,4 +220,31 @@ test('play request does not claim playback before the playing event', async ({ p
   await page.getByRole('button', { name: 'Play film' }).click();
   await expect(page.getByRole('button', { name: 'Loading film' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Pause film' })).toHaveCount(0);
+});
+
+
+test('screening room defaults to the official Blender Open Movies embed', async ({ page }) => {
+  await page.goto('/');
+  const official = page.locator('#screening iframe');
+  await expect(official).toBeVisible();
+  await expect(official).toHaveAttribute(
+    'src', 'https://video.blender.org/videos/embed/pAQiVCgv2CsLg79KKXUoMw'
+  );
+  await expect(page.locator('#screening video')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'OPEN ON BLENDER' })).toHaveAttribute(
+    'href', 'https://video.blender.org/w/pAQiVCgv2CsLg79KKXUoMw'
+  );
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
+  await expect(page.locator('#screening video')).toBeVisible();
+});
+
+test('failed direct player offers a return to the official hosted film', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
+  const video = page.locator('#screening video');
+  await expect(video).toBeVisible();
+  await video.evaluate(element => element.dispatchEvent(new Event('error')));
+  await page.getByRole('button', { name: 'WATCH IN BLENDER PLAYER' }).click();
+  await expect(page.locator('#screening iframe')).toBeVisible();
+  await expect(page.locator('#screening video')).toHaveCount(0);
 });
