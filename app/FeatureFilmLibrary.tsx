@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FEATURE_FILMS, formatFeatureRuntime, type FeatureFilm } from './featureFilms';
 import CINEXFilmPlayer from './CINEXFilmPlayer';
+import { useDialogFocus } from './useDialogFocus';
 
 const WATCHLIST_KEY = 'cinex-feature-film-list-v1';
 const RECENT_KEY = 'cinex-feature-film-last-selected-v1';
@@ -49,15 +50,13 @@ export default function FeatureFilmLibrary() {
 
   const selected = FEATURE_FILMS.find(movie => movie.id === selectedId);
   const lastMovie = FEATURE_FILMS.find(movie => movie.id === lastSelected);
+  const dialogRef = useDialogFocus(Boolean(selected), () => setSelectedId(null));
 
   const playFilm = (movie: FeatureFilm) => {
+    if (!movie.nativeSource) return; // Never disguise an external YouTube player as CINEX.
     setSelectedId(movie.id);
     setLastSelected(movie.id);
     try { localStorage.setItem(RECENT_KEY, movie.id); } catch { /* Optional. */ }
-    document.getElementById('feature-player')?.scrollIntoView({
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-      block: 'start',
-    });
   };
 
   const toggleSaved = (id: string) => {
@@ -71,7 +70,7 @@ export default function FeatureFilmLibrary() {
         <div>
           <span className="feature-cinema-overline">Full-length cinema / Free and licensed</span>
           <h3 id="feature-cinema-title">Pick your film. Press play.</h3>
-          <p>Real full-length films, not trailers. Licensed titles use CINEX's own film player wherever a direct stream is available.</p>
+          <p>Choose a licensed full film for a cinematic, distraction-free screening in CINEX. Provider-only titles are labelled separately.</p>
         </div>
         <span className="feature-film-count">{FEATURE_FILMS.length} feature films</span>
       </div>
@@ -110,12 +109,17 @@ export default function FeatureFilmLibrary() {
                   <span className="feature-film-time">{formatFeatureRuntime(movie.minutes)}</span>
                 </div>
                 <div className="feature-film-body">
-                  <p className="feature-film-meta">{movie.year} · {movie.type} · {movie.nativeSource ? 'CINEX Player' : 'Provider player'}</p>
+                  <p className="feature-film-meta">{movie.year} · {movie.type} · {movie.nativeSource ? 'WATCH IN CINEX' : 'EXTERNAL PROVIDER ONLY'}</p>
                   <h4>{movie.title}</h4>
                   <p className="feature-film-description">{movie.synopsis}</p>
                   <div className="feature-film-actions">
-                    <button type="button" className="btn primary" aria-label={'Play full movie ' + movie.title}
-                      onClick={() => playFilm(movie)}>{movie.nativeSource ? 'WATCH IN CINEX' : 'OPEN PROVIDER PLAYER'}</button>
+                    {movie.nativeSource
+                      ? <button type="button" className="btn primary"
+                          aria-label={'Play full movie ' + movie.title}
+                          onClick={() => playFilm(movie)}>WATCH IN CINEX</button>
+                      : <a className="btn feature-external-link" href={movie.sourceUrl}
+                          target="_blank" rel="noopener noreferrer"
+                          aria-label={'Watch ' + movie.title + ' on external provider'}>WATCH AT PROVIDER</a>}
                     <button type="button" className="feature-save"
                       aria-label={(saved ? 'Remove from' : 'Add to') + ' full movie watchlist: ' + movie.title}
                       aria-pressed={saved} onClick={() => toggleSaved(movie.id)}
@@ -128,40 +132,52 @@ export default function FeatureFilmLibrary() {
         </div>
       ) : <p className="feature-empty">No full movies match this filter. Try a different genre or search.</p>}
 
-      <div className="feature-player" id="feature-player" aria-label="Full movie playback area">
-        {selected ? (
-          <>
-            <div className="feature-player-heading">
-              <div>
-                <span>Now watching · {formatFeatureRuntime(selected.minutes)}</span>
-                <h4>{selected.title}</h4>
+      {lastMovie && !selected && (
+        <div className="feature-recent-film" aria-live="polite">
+          <span>Last selected: <strong>{lastMovie.title}</strong></span>
+          {lastMovie.nativeSource && (
+            <button type="button" className="btn" onClick={() => playFilm(lastMovie)}>
+              CONTINUE IN CINEX
+            </button>
+          )}
+        </div>
+      )}
+      {selected && (
+        <div className="cinex-theater-overlay"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget) setSelectedId(null);
+          }}>
+          <section className="feature-player cinex-theater" id="feature-player"
+            ref={dialogRef} tabIndex={-1} role="dialog"
+            aria-modal="true" aria-label={'Now watching ' + selected.title}>
+            <div className="cinex-theater-header">
+              <button type="button" className="dialog-close cinex-theater-back"
+                aria-label="Close player and return to library"
+                onClick={() => setSelectedId(null)}>← BACK TO MOVIES</button>
+              <span className="cinex-theater-logo">CINE<span>X.</span></span>
+              <span className="cinex-theater-runtime">{formatFeatureRuntime(selected.minutes)} · FULL FILM</span>
+            </div>
+            <div className="cinex-theater-stage">
+              <CINEXFilmPlayer key={selected.id} film={selected} />
+            </div>
+            <div className="cinex-theater-details">
+              <div className="cinex-theater-summary">
+                <p className="cinex-theater-label">Now screening / licensed open cinema</p>
+                <h3>{selected.title}</h3>
+                <p>{selected.synopsis}</p>
+                <p className="cinex-theater-credit">{selected.creator} · {selected.license}. {selected.rightsNote}</p>
               </div>
-              <button type="button" className="btn"
-                onClick={() => setSelectedId(null)}>CLOSE PLAYER</button>
+              <div className="cinex-theater-links">
+                <a href={selected.filmSite} target="_blank" rel="noopener noreferrer">FILM & RIGHTS</a>
+                <a href={selected.licenseUrl} target="_blank" rel="noopener noreferrer">LICENSE</a>
+                <a href={selected.alternateSource || selected.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  SOURCE / FALLBACK
+                </a>
+              </div>
             </div>
-            <CINEXFilmPlayer key={selected.id} film={selected} />
-            <div className="feature-film-rights">
-              <p>{selected.creator} · {selected.license}. {selected.rightsNote}</p>
-              <a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">
-                OPEN ORIGINAL PLAYER
-              </a>
-              <a href={selected.filmSite} target="_blank" rel="noopener noreferrer">
-                FILM & RIGHTS INFORMATION
-              </a>
-              <a href={selected.licenseUrl} target="_blank" rel="noopener noreferrer">
-                LICENSE DETAILS
-              </a>
-            </div>
-            <p className="fine">Playback depends on video host access, format support and your region. Native HTML5 streams use the original licensed source; provider-only titles remain clearly marked. CINEX does not rehost movie files.</p>
-          </>
-        ) : (
-          <div className="feature-player-idle">
-            <span>FULL MOVIE PLAYER</span>
-            <p>Select a film above to begin watching inside CINEX.</p>
-            {lastMovie && <p className="feature-recent">Last selected: {lastMovie.title} · Choose it again to watch.</p>}
-          </div>
-        )}
-      </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
