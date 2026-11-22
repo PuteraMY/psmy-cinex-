@@ -87,20 +87,12 @@ export default function CINEXFilmPlayer({ film }: { film: FeatureFilm }) {
 
   if (!film.nativeSource) {
     return (
-      <div className="cinex-native-player">
-        <div className="cinex-native-caption">
-          <span>Provider player</span>
-          <span>This title has no verified direct HTML5 source yet</span>
-        </div>
-        <div className="feature-iframe-wrap">
-          <iframe key={film.id}
-            title={'Full movie player: ' + film.title}
-            src={film.embedUrl + '?rel=0'}
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen loading="eager" referrerPolicy="strict-origin-when-cross-origin"
-          />
-        </div>
-        <p className="fine cinex-provider-note">The original video provider controls this player. CINEX will not hide or replace the provider's branding.</p>
+      <div className="cinex-native-player cinex-provider-only" role="status">
+        <p>This film is available through the original provider only. No CINEX-hosted stream
+          or independent player has been verified for this title.</p>
+        <a className="btn" href={film.sourceUrl} target="_blank" rel="noopener noreferrer">
+          WATCH AT ORIGINAL PROVIDER
+        </a>
       </div>
     );
   }
