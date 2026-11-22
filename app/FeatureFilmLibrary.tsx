@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { FEATURE_FILMS, formatFeatureRuntime, type FeatureFilm } from './featureFilms';
+import CINEXFilmPlayer from './CINEXFilmPlayer';
 
 const WATCHLIST_KEY = 'cinex-feature-film-list-v1';
 const RECENT_KEY = 'cinex-feature-film-last-selected-v1';
@@ -70,7 +71,7 @@ export default function FeatureFilmLibrary() {
         <div>
           <span className="feature-cinema-overline">Full-length cinema / Free and licensed</span>
           <h3 id="feature-cinema-title">Pick your film. Press play.</h3>
-          <p>Real feature-length films, not trailers. Watch through their original licensed players.</p>
+          <p>Real full-length films, not trailers. Licensed titles use CINEX's own film player wherever a direct stream is available.</p>
         </div>
         <span className="feature-film-count">{FEATURE_FILMS.length} feature films</span>
       </div>
@@ -109,12 +110,12 @@ export default function FeatureFilmLibrary() {
                   <span className="feature-film-time">{formatFeatureRuntime(movie.minutes)}</span>
                 </div>
                 <div className="feature-film-body">
-                  <p className="feature-film-meta">{movie.year} · {movie.type} · Full movie</p>
+                  <p className="feature-film-meta">{movie.year} · {movie.type} · {movie.nativeSource ? 'CINEX Player' : 'Provider player'}</p>
                   <h4>{movie.title}</h4>
                   <p className="feature-film-description">{movie.synopsis}</p>
                   <div className="feature-film-actions">
                     <button type="button" className="btn primary" aria-label={'Play full movie ' + movie.title}
-                      onClick={() => playFilm(movie)}>PLAY FULL MOVIE</button>
+                      onClick={() => playFilm(movie)}>{movie.nativeSource ? 'WATCH IN CINEX' : 'OPEN PROVIDER PLAYER'}</button>
                     <button type="button" className="feature-save"
                       aria-label={(saved ? 'Remove from' : 'Add to') + ' full movie watchlist: ' + movie.title}
                       aria-pressed={saved} onClick={() => toggleSaved(movie.id)}
@@ -138,17 +139,7 @@ export default function FeatureFilmLibrary() {
               <button type="button" className="btn"
                 onClick={() => setSelectedId(null)}>CLOSE PLAYER</button>
             </div>
-            <div className="feature-iframe-wrap">
-              <iframe
-                key={selected.id}
-                title={'Full movie player: ' + selected.title}
-                src={selected.embedUrl + '?rel=0'}
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                allowFullScreen
-                loading="eager"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            </div>
+            <CINEXFilmPlayer key={selected.id} film={selected} />
             <div className="feature-film-rights">
               <p>{selected.creator} · {selected.license}. {selected.rightsNote}</p>
               <a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">
@@ -161,7 +152,7 @@ export default function FeatureFilmLibrary() {
                 LICENSE DETAILS
               </a>
             </div>
-            <p className="fine">Streaming depends on the original host and regional access. If the embedded player is unavailable, use Open Original Player. CINEX does not store movie files.</p>
+            <p className="fine">Playback depends on video host access, format support and your region. Native HTML5 streams use the original licensed source; provider-only titles remain clearly marked. CINEX does not rehost movie files.</p>
           </>
         ) : (
           <div className="feature-player-idle">
