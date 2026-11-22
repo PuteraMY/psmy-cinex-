@@ -120,3 +120,43 @@
 .cinex-native-error p{color:#f0ded4;font-size:13px;margin:0 0 12px;line-height:1.6}
 .cinex-provider-note{padding:0 18px 18px;color:#9db0c2}
 @media(max-width:560px){.cinex-native-caption{padding:10px 12px}.cinex-native-controls{padding:12px;gap:9px}.cinex-native-controls .btn{flex:1 1 auto}.cinex-playback-clock{margin-left:0}.cinex-native-error{margin:0 12px 12px}.cinex-provider-note{padding:0 12px 14px}}
+
+/* Watchable licensed films lead; discovery remains explicitly separate. */
+.nav .watch-free-nav{color:#08131b;background:#8ce2ed;border-radius:999px;padding:12px 16px;font-size:11px;font-weight:900;white-space:nowrap;letter-spacing:.02em}
+.nav .watch-free-nav:hover{background:#d2f9ff}
+#screening,#discover{scroll-margin-top:16px}
+.feature-external-link{background:#ffffff09;border-color:#ffffff3b;color:#cfdae8}
+.feature-film-card:has(.feature-external-link){border-color:#ffffff16;background:#111825}
+.feature-film-card:has(.feature-external-link) .feature-film-meta{color:#d4ba8b}
+.feature-film-card .feature-film-meta{line-height:1.5}
+
+/* Cinematic fullscreen-like watch experience: real HTML5 player, no YouTube iframe. */
+.cinex-theater-overlay{position:fixed;inset:0;z-index:120;overflow-y:auto;overscroll-behavior:contain;display:flex;align-items:flex-start;justify-content:center;padding:18px 22px;background:rgba(2,5,11,.98);backdrop-filter:blur(14px)}
+.feature-player.cinex-theater{margin:0 auto;max-width:1330px;width:100%;min-height:calc(100vh - 36px);border:0;border-radius:0;background:#06090e;box-shadow:0 30px 120px #000d;overflow:visible;display:flex;flex-direction:column}
+.cinex-theater-header{display:flex;align-items:center;gap:18px;justify-content:space-between;min-height:66px;border-bottom:1px solid #ffffff20;padding:12px 22px}
+.cinex-theater-back{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border:1px solid #ffffff40;color:#e5f1f9;border-radius:8px;background:#15202d;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.04em;position:static;width:auto;height:auto}
+.cinex-theater-back:hover{border-color:#9de0ef;background:#213445}
+.cinex-theater-logo{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:900;letter-spacing:-.09em;white-space:nowrap;color:#fff}
+.cinex-theater-logo span{color:#8fe6f6}
+.cinex-theater-runtime{font-size:11px;color:#afc1ce;letter-spacing:.08em;white-space:nowrap}
+.cinex-theater-stage{width:100%;margin:0 auto;background:#010203}
+.cinex-theater-stage .cinex-native-viewport{aspect-ratio:16/9;max-height:calc(100vh - 180px)}
+.cinex-theater-stage .cinex-native-viewport video{max-height:calc(100vh - 180px)}
+.cinex-theater-stage .cinex-native-caption{background:#090f19}
+.cinex-theater-stage .cinex-native-controls{background:#0a1220;border-top:1px solid #ffffff20}
+.cinex-theater-details{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;padding:25px 26px 32px;background:#080d16}
+.cinex-theater-summary{flex:1 1 500px;max-width:770px}
+.cinex-theater-label{font-size:10px;color:#8cdbef;letter-spacing:.12em;margin:0 0 11px}
+.cinex-theater-summary h3{font-family:'Space Grotesk',sans-serif;font-size:clamp(25px,3.4vw,40px);letter-spacing:-.05em;line-height:1.1;margin:0 0 10px}
+.cinex-theater-summary p{font-size:13px;color:#c4d2df;line-height:1.65;margin:0 0 10px}
+.cinex-theater-summary .cinex-theater-credit{color:#92a6b5;font-size:11px;line-height:1.7}
+.cinex-theater-links{display:flex;flex:0 1 230px;flex-direction:column;gap:13px;align-items:flex-end}
+.cinex-theater-links a{font-size:11px;font-weight:800;color:#aae6f4;text-decoration:underline;text-underline-offset:4px}
+.feature-recent-film{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-top:1px solid #ffffff25;margin-top:28px;padding-top:17px;color:#aebfd0;font-size:12px}
+.feature-recent-film strong{color:#f2f8fe}
+.cinex-provider-only{padding:25px}
+.cinex-provider-only p{font-size:13px;line-height:1.6;color:#bccad8}
+@media(max-width:900px){.nav{gap:12px}.nav button{font-size:11px}.nav .watch-free-nav{padding:11px 12px}.top-right{display:none}}
+@media(max-width:700px){.cinex-theater-overlay{padding:0}.feature-player.cinex-theater{width:100%;min-height:100dvh}.cinex-theater-header{min-height:58px;padding:10px 13px;gap:8px}.cinex-theater-back{font-size:10px;padding:8px 10px;min-height:40px}.cinex-theater-logo{font-size:21px}.cinex-theater-runtime{display:none}.cinex-theater-stage .cinex-native-viewport{max-height:none}.cinex-theater-stage .cinex-native-viewport video{max-height:none}.cinex-theater-details{padding:19px 16px;gap:10px}.cinex-theater-links{flex:1 1 100%;flex-direction:row;align-items:flex-start;flex-wrap:wrap;gap:14px}.feature-recent-film .btn{font-size:11px}}
+@media(max-width:480px){.top .nav{gap:7px;justify-content:flex-start}.top .nav a.watch-free-nav{font-size:10px;padding:9px 12px}.top .nav button{padding:8px 6px}.cinex-theater-logo{font-size:19px}}
+@media(prefers-reduced-motion:reduce){.cinex-theater-overlay{scroll-behavior:auto}}
