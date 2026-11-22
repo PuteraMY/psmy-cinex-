@@ -2,7 +2,7 @@
  * Full-length films (>= 60 minutes) with independently documented open
  * licensing. Never add unlicensed commercial discovery entries to this list.
  *
- * Videos are EMBEDDED from a third-party host, not copied to CINEX servers.
+ * Native films stream the creators' authorized files via HTML5.\n * Other films use the provider's unchanged embed. No files are rehosted.
  * A link to the original producer/film site is always visible.
  */
 export type FeatureFilm = {
@@ -13,6 +13,9 @@ export type FeatureFilm = {
   type: 'Drama' | 'Documentary' | 'Animation';
   synopsis: string;
   embedUrl: string;
+  /** Native HTML5 source is used for authorized, directly downloadable films. */
+  nativeSource?: { url: string; type: 'video/mp4' | 'video/ogg' | 'video/webm'; host: string };
+  alternateSource?: string;
   image: string;
   provider: string;
   sourceUrl: string;
@@ -49,6 +52,12 @@ export const FEATURE_FILMS: readonly FeatureFilm[] = [
     type: 'Documentary',
     synopsis: 'What happens when academic knowledge is locked behind expensive publishing paywalls? A documentary about access to research.',
     embedUrl: 'https://www.youtube-nocookie.com/embed/NBFFa9Tc12c',
+    nativeSource: {
+      url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/2018_documentary_%27Paywall_%E2%80%93_The_Business_of_Scholarship%27.ogg',
+      type: 'video/ogg',
+      host: 'Wikimedia Commons · licensed Ogg stream',
+    },
+    alternateSource: 'https://archive.org/details/PaywallTheBusinessOfScholarshipFinalMovieMastered',
     image: 'https://i.ytimg.com/vi/NBFFa9Tc12c/hqdefault.jpg',
     provider: 'YouTube · CC BY 4.0 film',
     sourceUrl: 'https://www.youtube.com/watch?v=NBFFa9Tc12c',
@@ -56,7 +65,7 @@ export const FEATURE_FILMS: readonly FeatureFilm[] = [
     creator: 'Jason Schmitt / Paywall: The Business of Scholarship',
     license: 'Creative Commons BY 4.0',
     licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
-    rightsNote: 'Published for free public and private viewing under CC BY 4.0 by its creators. CINEX links back to the original film and does not rehost the video.',
+    rightsNote: 'Published for free public and private viewing under CC BY 4.0 by its creators. CINEX streams the CC BY licensed Ogg copy from Wikimedia Commons directly in HTML5 where supported; fallback links retain attribution.',
   },
   {
     id: 'sita-sings-the-blues',
@@ -66,6 +75,13 @@ export const FEATURE_FILMS: readonly FeatureFilm[] = [
     type: 'Animation',
     synopsis: 'An imaginative animated feature interweaving the Ramayana, shadow-puppet storytelling and the music of a bygone era.',
     embedUrl: 'https://www.youtube-nocookie.com/embed/RzTg7YXuy34',
+    nativeSource: {
+      // Linked directly from the filmmaker's official free-download/watch page.
+      url: 'https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_480p_2150kbps.mp4',
+      type: 'video/mp4',
+      host: 'Internet Archive · filmmaker-linked full movie',
+    },
+    alternateSource: 'https://www.sitasingstheblues.com/watch.html',
     image: 'https://i.ytimg.com/vi/RzTg7YXuy34/hqdefault.jpg',
     provider: 'YouTube · linked by the filmmaker',
     sourceUrl: 'https://www.youtube.com/watch?v=RzTg7YXuy34',
@@ -73,7 +89,7 @@ export const FEATURE_FILMS: readonly FeatureFilm[] = [
     creator: 'Nina Paley / Sita Sings the Blues',
     license: 'Creative Commons BY-SA 3.0 (film)',
     licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/us/',
-    rightsNote: 'The filmmaker offers this full movie for free on her official site. Certain musical recordings have separate rights restrictions, so CINEX only embeds the video she links to; it does not distribute or alter the soundtrack.',
+    rightsNote: 'The filmmaker offers this full movie for free on her official site. Certain musical recordings have separate rights restrictions, so CINEX uses only the filmmaker-linked full-film MP4 from Internet Archive; no redistribution or soundtrack modification.',
   },
 ];
 
