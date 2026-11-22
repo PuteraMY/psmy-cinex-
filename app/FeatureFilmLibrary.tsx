@@ -8,6 +8,7 @@ import { useDialogFocus } from './useDialogFocus';
 const WATCHLIST_KEY = 'cinex-feature-film-list-v1';
 const RECENT_KEY = 'cinex-feature-film-last-selected-v1';
 type Genre = 'All films' | FeatureFilm['type'];
+const CINEX_FEATURES = FEATURE_FILMS.filter(movie => Boolean(movie.nativeSource));
 
 export default function FeatureFilmLibrary() {
   const [genre, setGenre] = useState<Genre>('All films');
@@ -17,6 +18,7 @@ export default function FeatureFilmLibrary() {
   const [lastSelected, setLastSelected] = useState('');
   const [hydrated, setHydrated] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const availableGenres = Array.from(new Set(CINEX_FEATURES.map(movie => movie.type)));
 
   useEffect(() => {
     try {
@@ -42,6 +44,7 @@ export default function FeatureFilmLibrary() {
   const matchingFilms = useMemo(() => {
     const search = query.toLowerCase().trim();
     return FEATURE_FILMS.filter(movie =>
+      Boolean(movie.nativeSource) &&
       (genre === 'All films' || movie.type === genre) &&
       (!showSaved || savedIds.includes(movie.id)) &&
       (!search || (movie.title + ' ' + movie.synopsis + ' ' + movie.type).toLowerCase().includes(search))
@@ -49,8 +52,22 @@ export default function FeatureFilmLibrary() {
   }, [genre, query, savedIds, showSaved]);
 
   const selected = FEATURE_FILMS.find(movie => movie.id === selectedId);
-  const lastMovie = FEATURE_FILMS.find(movie => movie.id === lastSelected);
+  const lastMovie = CINEX_FEATURES.find(movie => movie.id === lastSelected);
   const dialogRef = useDialogFocus(Boolean(selected), () => setSelectedId(null));
+
+  useEffect(() => {
+    const openHeroFilm = (event: Event) => {
+      const id = (event as CustomEvent<string>).detail;
+      const movie = CINEX_FEATURES.find(item => item.id === id);
+      if (movie) {
+        setSelectedId(movie.id);
+        setLastSelected(movie.id);
+        try { localStorage.setItem(RECENT_KEY, movie.id); } catch { /* Optional. */ }
+      }
+    };
+    window.addEventListener('cinex-watch-feature', openHeroFilm);
+    return () => window.removeEventListener('cinex-watch-feature', openHeroFilm);
+  }, []);
 
   const playFilm = (movie: FeatureFilm) => {
     if (!movie.nativeSource) return; // Never disguise an external YouTube player as CINEX.
@@ -69,10 +86,10 @@ export default function FeatureFilmLibrary() {
       <div className="feature-cinema-top">
         <div>
           <span className="feature-cinema-overline">Full-length cinema / Free and licensed</span>
-          <h3 id="feature-cinema-title">Pick your film. Press play.</h3>
-          <p>Choose a licensed full film for a cinematic, distraction-free screening in CINEX. Provider-only titles are labelled separately.</p>
+          <h3 id="feature-cinema-title">Available to watch in CINEX</h3>
+          <p>These are the full-length films with approved direct video sources for the CINEX player. No trailers or YouTube embeds.</p>
         </div>
-        <span className="feature-film-count">{FEATURE_FILMS.length} feature films</span>
+        <span className="feature-film-count">{CINEX_FEATURES.length} full films available</span>
       </div>
 
       <div className="feature-toolbar">
@@ -85,7 +102,7 @@ export default function FeatureFilmLibrary() {
           onChange={event => setQuery(event.target.value)}
         />
         <div className="feature-genre-tabs" aria-label="Filter full movies">
-          {(['All films', 'Drama', 'Documentary', 'Animation'] as const).map(item =>
+          {(['All films', ...availableGenres] as Genre[]).map(item =>
             <button key={item} type="button"
               className={'feature-filter' + (genre === item ? ' active' : '')}
               aria-pressed={genre === item}
@@ -130,7 +147,7 @@ export default function FeatureFilmLibrary() {
             );
           })}
         </div>
-      ) : <p className="feature-empty">No full movies match this filter. Try a different genre or search.</p>}
+      ) : <p className="feature-empty">No playable full movies match this filter. Try a different genre or search.</p>}
 
       {lastMovie && !selected && (
         <div className="feature-recent-film" aria-live="polite">
