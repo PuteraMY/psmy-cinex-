@@ -11,3 +11,10 @@
 /* Explicit controls keep playback discoverable on mobile and in keyboard-only use. */
 .screening-controls{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:18px}
 .screening-controls span{font-size:12px;color:var(--muted);line-height:1.6}
+
+/* Quiet, readable playback state and source diagnostics for real network failures. */
+.screening-status{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 18px;margin-top:13px;color:#aabbd0;font-size:12px;line-height:1.7}
+.screening-status [role="status"]{color:#c7ebf7;font-weight:700}
+.screening-status [aria-label="Playback time"]{font-variant-numeric:tabular-nums;white-space:nowrap}
+.screening-controls .btn:disabled{opacity:.65;cursor:progress;transform:none;box-shadow:none}
+@media(max-width:480px){.screening-controls .btn{flex:1 1 140px}.screening-controls span{flex-basis:100%}}
