@@ -103,3 +103,20 @@
 @media(max-width:700px){.feature-cinema{padding:17px;margin:30px 0 66px}.feature-cinema-top{align-items:flex-start;flex-direction:column;gap:13px}.feature-film-count{align-self:flex-start}.feature-toolbar{align-items:stretch}.feature-search{flex:1 1 100%;width:100%}.feature-genre-tabs{width:100%}.feature-film-grid{grid-template-columns:1fr}.feature-film-card{max-width:none}.feature-film-body h4{font-size:20px}.feature-iframe-wrap{aspect-ratio:16/9}.feature-film-rights{padding:14px}.feature-player>.fine{margin:0 14px 18px}}
 @media(max-width:360px){.feature-cinema{padding:12px}.feature-filter{padding:8px 10px}.feature-film-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.feature-film-card{transform:none!important}}
+
+/* Native CINEX film player, distinguished from YouTube-provider embeds. */
+.cinex-native-player{background:#050a11;padding-bottom:4px}
+.cinex-native-caption{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 18px;background:#0c1522;border-bottom:1px solid #ffffff20;color:#aabfd0;font-size:11px}
+.cinex-native-caption span:first-child{font-size:10px;font-weight:800;letter-spacing:.14em;color:#8fe1e9}
+.cinex-native-viewport{width:100%;aspect-ratio:16/9;background:#010203;display:grid;place-items:center}
+.cinex-native-viewport:fullscreen{aspect-ratio:auto}
+.cinex-native-viewport video{width:100%;height:100%;max-height:100vh;object-fit:contain;background:black}
+.cinex-native-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 18px}
+.cinex-native-controls .btn{font-size:11px;min-height:44px}
+.cinex-native-controls .btn.primary{min-width:96px}
+.cinex-playback-status{color:#a8c4cf;font-size:11px}
+.cinex-playback-clock{font-variant-numeric:tabular-nums;font-size:12px;font-family:'JetBrains Mono',monospace;color:#e1edf6;margin-left:auto}
+.cinex-native-error{margin:0 18px 14px;padding:15px 18px;border:1px solid #dbad8666;border-radius:9px;background:#211a18}
+.cinex-native-error p{color:#f0ded4;font-size:13px;margin:0 0 12px;line-height:1.6}
+.cinex-provider-note{padding:0 18px 18px;color:#9db0c2}
+@media(max-width:560px){.cinex-native-caption{padding:10px 12px}.cinex-native-controls{padding:12px;gap:9px}.cinex-native-controls .btn{flex:1 1 auto}.cinex-playback-clock{margin-left:0}.cinex-native-error{margin:0 12px 12px}.cinex-provider-note{padding:0 12px 14px}}
