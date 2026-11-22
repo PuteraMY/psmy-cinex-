@@ -137,3 +137,42 @@ test('screening room provides a visible Play control and updates state on play',
   await page.getByRole('button', { name: 'Play film' }).click();
   await expect(page.getByRole('button', { name: 'Pause film' })).toBeVisible();
 });
+
+
+test('screening room pause control reflects the paused video state', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+
+  // Exercise the React event path without claiming external-host playback.
+  await player.evaluate(element => {
+    const video = element as HTMLVideoElement;
+    Object.defineProperty(video, 'paused', { configurable: true, get: () => false });
+    video.dispatchEvent(new Event('play'));
+  });
+  const pause = page.getByRole('button', { name: 'Pause film' });
+  await expect(pause).toBeVisible();
+
+  await player.evaluate(element => {
+    const video = element as HTMLVideoElement;
+    video.pause = function () { this.dispatchEvent(new Event('pause')); };
+  });
+  await pause.click();
+  await expect(page.getByRole('button', { name: 'Play film' })).toBeVisible();
+});
+
+test('screening room recovers when the browser rejects play', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+  await player.evaluate(element => {
+    (element as HTMLVideoElement).play = () => Promise.reject(new Error('Playback blocked'));
+  });
+
+  await page.getByRole('button', { name: 'Play film' }).click();
+  const recovery = page.locator('#screening .playback-recovery');
+  await expect(recovery).toContainText('The film could not load');
+  await recovery.getByRole('button', { name: 'RETRY PLAYBACK' }).click();
+  await expect(recovery).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Play film' })).toBeVisible();
+});
