@@ -190,3 +190,13 @@
   .feature-film-grid{grid-template-columns:1fr;max-width:540px}
   .screening{padding:40px 0}
 }
+
+/* Shorts are explicitly optional; no third-party film iframe loads until requested. */
+.cinex-shorts-toggle{display:flex;align-items:center;gap:15px;justify-content:space-between;padding:21px 23px;width:100%;text-align:left;border:1px solid #ffffff36;border-radius:12px;background:#101d2d;color:#e6f7fc;font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;cursor:pointer}
+.cinex-shorts-toggle>small{font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.5;font-weight:400;color:#9fb8c7}
+.cinex-shorts-toggle>svg{flex:none;transition:transform .18s}
+.cinex-shorts-toggle[aria-expanded=true]>svg{transform:rotate(180deg)}
+.cinex-open-shorts{margin-top:52px}
+.cinex-open-shorts .open-movies-library{margin-top:30px}
+@media(max-width:620px){.cinex-shorts-toggle{flex-wrap:wrap;padding:16px;font-size:16px}.cinex-shorts-toggle>small{order:2;flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){.cinex-shorts-toggle>svg{transition:none}}
