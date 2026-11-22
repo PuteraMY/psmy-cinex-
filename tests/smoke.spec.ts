@@ -130,7 +130,7 @@ test('screening room provides a visible Play control and updates state on play',
   await expect(player).toBeVisible();
   await player.evaluate(element => {
     (element as HTMLVideoElement).play = function () {
-      this.dispatchEvent(new Event('play'));
+      this.dispatchEvent(new Event('playing'));
       return Promise.resolve();
     };
   });
@@ -148,7 +148,7 @@ test('screening room pause control reflects the paused video state', async ({ pa
   await player.evaluate(element => {
     const video = element as HTMLVideoElement;
     Object.defineProperty(video, 'paused', { configurable: true, get: () => false });
-    video.dispatchEvent(new Event('play'));
+    video.dispatchEvent(new Event('playing'));
   });
   const pause = page.getByRole('button', { name: 'Pause film' });
   await expect(pause).toBeVisible();
@@ -175,4 +175,41 @@ test('screening room recovers when the browser rejects play', async ({ page }) =
   await recovery.getByRole('button', { name: 'RETRY PLAYBACK' }).click();
   await expect(recovery).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Play film' })).toBeVisible();
+});
+
+
+test('screening selects an available MP4 mirror and exposes progress/source status', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#screening video source')).toHaveAttribute(
+    'src', 'https://uploads.video-commander.com/sample/BigBuckBunny.mp4'
+  );
+  await expect(page.locator('#screening .screening-status')).toContainText('Source: 720p mirror');
+  await expect(page.locator('#screening .screening-status')).toContainText('00:00');
+});
+
+test('failed film can switch source without refreshing the whole page', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+
+  await player.evaluate(element => element.dispatchEvent(new Event('error')));
+  const recovery = page.locator('#screening .playback-recovery');
+  await expect(recovery).toContainText('The film could not load');
+  await recovery.getByRole('button', { name: 'TRY ANOTHER SOURCE' }).click();
+  await expect(page.locator('#screening video source')).toHaveAttribute(
+    'src', 'https://upload.wikimedia.org/wikipedia/commons/3/37/Big_Buck_Bunny_with_VTT_acid_test.webm'
+  );
+  await expect(page.locator('#screening .screening-status')).toContainText('Source: Wikimedia Commons');
+});
+
+test('play request does not claim playback before the playing event', async ({ page }) => {
+  await page.goto('/');
+  const player = page.locator('#screening video');
+  await expect(player).toBeVisible();
+  await player.evaluate(element => {
+    (element as HTMLVideoElement).play = () => Promise.resolve();
+  });
+  await page.getByRole('button', { name: 'Play film' }).click();
+  await expect(page.getByRole('button', { name: 'Loading film' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Pause film' })).toHaveCount(0);
 });
