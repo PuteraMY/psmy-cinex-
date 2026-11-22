@@ -325,8 +325,8 @@ test('watch homepage shows only actual CINEX streams, with matching hero art and
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /SITA SINGS/ })).toBeVisible();
   await expect(page.locator('.hero-bg')).toHaveAttribute('style', /RzTg7YXuy34/);
-  await expect(page.locator('.feature-film-card')).toHaveCount(2);
-  await expect(page.locator('.feature-film-count')).toContainText('2 full films available');
+  await expect(page.locator('.feature-film-card')).toHaveCount(4);
+  await expect(page.locator('.feature-film-count')).toContainText('4 full films available');
   await expect(page.locator('#discover')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toHaveCount(0);
   await page.getByRole('button', { name: 'WATCH SITA IN CINEX' }).click();
@@ -345,21 +345,69 @@ test('optional discovery is visually separated from watchable titles', async ({ 
   await expect(page.locator('#discover')).toBeVisible();
   await expect(page.locator('#discover')).toContainText('NOT FULL STREAMS');
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
-  await expect(page.locator('.feature-film-card')).toHaveCount(2);
+  await expect(page.locator('.feature-film-card')).toHaveCount(4);
 });
 
-test('feature cinema lists two native full films, not provider-only links or trailers', async ({ page }) => {
+test('feature cinema lists four full or long-form open films, not provider-only links or trailers', async ({ page }) => {
   await page.goto('/');
   const cinema = page.locator('.feature-cinema');
   await expect(cinema.getByRole('heading', { name: 'Available to watch in CINEX' })).toBeVisible();
-  await expect(page.locator('.feature-film-card')).toHaveCount(2);
-  for (const title of ['Paywall: The Business of Scholarship', 'Sita Sings the Blues']) {
+  await expect(page.locator('.feature-film-card')).toHaveCount(4);
+  for (const title of ['Paywall: The Business of Scholarship', 'Sita Sings the Blues', 'Panopticon', 'Within Our Gates']) {
     await expect(cinema.getByRole('button', { name: 'Play full movie ' + title })).toBeVisible();
   }
   await expect(cinema.getByText('Valkaama')).toHaveCount(0);
   await expect(cinema.getByText('1h 5m')).toBeVisible();
+  await expect(cinema.getByText('57m')).toBeVisible();
+  await expect(cinema.getByText('1h 17m')).toBeVisible();
   await expect(cinema.getByText('1h 21m')).toBeVisible();
   await expect(page.locator('#feature-player iframe')).toHaveCount(0);
+});
+
+test('two new legal film streams open in CINEX without YouTube embedding', async ({ page }) => {
+  await page.goto('/');
+  const catalog = [
+    {
+      name: 'Panopticon',
+      src: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/FULL_DOCUMENTARY_-_Panopticon_privacy_-_Peter_Vlemmix.webm',
+      license: 'Creative Commons Attribution 3.0',
+      rights: 'https://vimeo.com/52165457',
+    },
+    {
+      name: 'Within Our Gates',
+      src: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Within_Our_Gates_%281920%29.webm',
+      license: 'Public domain in the United States',
+      rights: 'https://www.loc.gov/item/mbrs00046435/',
+    },
+  ];
+  for (const film of catalog) {
+    await page.getByRole('button', { name: 'Play full movie ' + film.name }).click();
+    const dialog = page.getByRole('dialog', { name: 'Now watching ' + film.name });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('video source')).toHaveAttribute('src', film.src);
+    await expect(dialog.locator('video source')).toHaveAttribute('type', 'video/webm');
+    await expect(dialog.locator('iframe')).toHaveCount(0);
+    await expect(dialog).toContainText(film.license);
+    await expect(dialog.getByRole('link', { name: 'FILM & RIGHTS' })).toHaveAttribute('href', film.rights);
+    await dialog.getByRole('button', { name: 'Close player and return to library' }).click();
+  }
+});
+
+test('new films are searchable and card count always represents real native streams', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.feature-film-card')).toHaveCount(4);
+  const search = page.getByRole('searchbox', { name: 'Search full movies' });
+  await search.fill('privacy');
+  await expect(page.locator('.feature-film-card')).toHaveCount(1);
+  await expect(page.locator('.feature-film-card')).toContainText('Panopticon');
+  await search.fill('Oscar Micheaux');
+  await expect(page.locator('.feature-film-card')).toHaveCount(0);
+  await search.fill('historic silent');
+  await expect(page.locator('.feature-film-card')).toHaveCount(1);
+  await expect(page.locator('.feature-film-card')).toContainText('Within Our Gates');
+  await search.fill('');
+  await expect(page.locator('.feature-film-card')).toHaveCount(4);
+  await expect(page.locator('.feature-film-count')).toContainText('4 full films available');
 });
 
 test('licensed Paywall movie uses CINEX HTML5 player rather than YouTube', async ({ page }) => {
@@ -461,10 +509,11 @@ test('full movie search, genre and saved filters work without affecting discover
   await expect(page.locator('.feature-film-card')).toContainText('Paywall');
   await search.fill('');
   await page.locator('.feature-cinema').getByRole('button', { name: 'Documentary' }).click();
-  await expect(page.locator('.feature-film-card')).toHaveCount(1);
-  await expect(page.locator('.feature-film-card')).toContainText('Paywall');
-  await page.locator('.feature-cinema').getByRole('button', { name: 'All films' }).click();
   await expect(page.locator('.feature-film-card')).toHaveCount(2);
+  await expect(page.locator('.feature-film-grid')).toContainText('Paywall');
+  await expect(page.locator('.feature-film-grid')).toContainText('Panopticon');
+  await page.locator('.feature-cinema').getByRole('button', { name: 'All films' }).click();
+  await expect(page.locator('.feature-film-card')).toHaveCount(4);
   await page.getByRole('button', { name: 'Add to full movie watchlist: Paywall: The Business of Scholarship' }).click();
   await page.locator('.feature-cinema').getByRole('button', { name: 'My saved (1)' }).click();
   await expect(page.locator('.feature-film-card')).toHaveCount(1);
