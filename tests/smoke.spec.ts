@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
 
 test('desktop/mobile navigation, refresh and filtering', async ({ page }) => {
   await page.goto('/?catalog=1');
-  await expect(page.getByText('SITA SINGS')).toBeVisible();
+  await expect(page.locator('.hero h1')).toContainText('SITA SINGS');
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
   await page.getByRole('searchbox', { name: 'Search titles' }).fill('quiet');
   await expect(page.getByRole('heading', { name: 'CINEX QA Beta' })).toBeVisible();
@@ -24,7 +24,7 @@ test('desktop/mobile navigation, refresh and filtering', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'CINEX QA Beta' })).toHaveCount(0);
   await page.reload();
-  await expect(page.getByText('THE BLUES.')).toBeVisible();
+  await expect(page.locator('.hero h1')).toContainText('THE BLUES.');
 });
 
 test('watchlist persists after reload and can be removed', async ({ page }) => {
@@ -376,8 +376,11 @@ test('licensed Paywall movie uses CINEX HTML5 player rather than YouTube', async
   await expect(media).toHaveAttribute('controls', '');
   await expect(player).toContainText('CINEX PLAYER · FULL FEATURE');
   await expect(player).toContainText('Creative Commons BY 4.0');
-  await expect(player.getByRole('link', { name: 'OPEN ORIGINAL PLAYER' })).toHaveAttribute(
-    'href', 'https://www.youtube.com/watch?v=NBFFa9Tc12c'
+  await expect(player.getByRole('link', { name: 'FILM & RIGHTS' })).toHaveAttribute(
+    'href', 'https://paywallthemovie.com/'
+  );
+  await expect(player.getByRole('link', { name: 'SOURCE / FALLBACK' })).toHaveAttribute(
+    'href', 'https://archive.org/details/PaywallTheBusinessOfScholarshipFinalMovieMastered'
   );
   await player.getByRole('button', { name: 'Close player and return to library' }).click();
   await expect(player.locator('video')).toHaveCount(0);
