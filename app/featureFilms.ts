@@ -1,8 +1,9 @@
 /**
- * Full-length films (>= 60 minutes) with independently documented open
- * licensing. Never add unlicensed commercial discovery entries to this list.
+ * Full-length films and complete long-form documentaries with independently
+ * documented open licensing. Source presence alone does not certify playback. Never add unlicensed commercial discovery entries to this list.
  *
- * Native films stream the creators' authorized files via HTML5.\n * Other films use the provider's unchanged embed. No files are rehosted.
+ * Native films stream authorized third-party files through HTML5.
+ * No film files are downloaded to, or rehosted by, CINEX servers.
  * A link to the original producer/film site is always visible.
  */
 export type FeatureFilm = {
@@ -10,7 +11,7 @@ export type FeatureFilm = {
   title: string;
   year: number;
   minutes: number;
-  type: 'Drama' | 'Documentary' | 'Animation';
+  type: 'Drama' | 'Documentary' | 'Animation' | 'Classic';
   synopsis: string;
   embedUrl: string;
   /** Native HTML5 source is used for authorized, directly downloadable films. */
@@ -27,6 +28,52 @@ export type FeatureFilm = {
 };
 
 export const FEATURE_FILMS: readonly FeatureFilm[] = [
+  {
+    id: 'panopticon-2012',
+    title: 'Panopticon',
+    year: 2012,
+    minutes: 57,
+    type: 'Documentary',
+    synopsis: 'A Dutch documentary by Peter Vlemmix examining surveillance, privacy and the growing power of data collection.',
+    embedUrl: 'https://commons.wikimedia.org/wiki/File:FULL_DOCUMENTARY_-_Panopticon_privacy_-_Peter_Vlemmix.webm',
+    nativeSource: {
+      url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/FULL_DOCUMENTARY_-_Panopticon_privacy_-_Peter_Vlemmix.webm',
+      type: 'video/webm',
+      host: 'Wikimedia Commons · original licensed documentary',
+    },
+    alternateSource: 'https://commons.wikimedia.org/wiki/File:FULL_DOCUMENTARY_-_Panopticon_privacy_-_Peter_Vlemmix.webm',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/FULL_DOCUMENTARY_-_Panopticon_privacy_-_Peter_Vlemmix.webm/640px--FULL_DOCUMENTARY_-_Panopticon_privacy_-_Peter_Vlemmix.webm.jpg',
+    provider: 'Wikimedia Commons · 57 minute complete film',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:FULL_DOCUMENTARY_-_Panopticon_privacy_-_Peter_Vlemmix.webm',
+    filmSite: 'https://vimeo.com/52165457',
+    creator: 'Peter Vlemmix / Panopticon (2012)',
+    license: 'Creative Commons Attribution 3.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by/3.0/',
+    rightsNote: 'The complete documentary (57:15) was published under CC BY 3.0; Wikimedia Commons reviewed the original license on 21 December 2016. Attribution: Peter Vlemmix. This external WebM is not stored on CINEX servers.',
+  },
+  {
+    id: 'within-our-gates-1920',
+    title: 'Within Our Gates',
+    year: 1920,
+    minutes: 77,
+    type: 'Classic',
+    synopsis: 'Oscar Micheaux’s historic silent drama follows a teacher raising support for a school amid the racial realities of early-twentieth-century America.',
+    embedUrl: 'https://commons.wikimedia.org/wiki/File:Within_Our_Gates_(1920).webm',
+    nativeSource: {
+      url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Within_Our_Gates_%281920%29.webm',
+      type: 'video/webm',
+      host: 'Wikimedia Commons · restored silent feature',
+    },
+    alternateSource: 'https://commons.wikimedia.org/wiki/File:Within_Our_Gates_(1920).webm',
+    image: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Within_Our_Gates.jpg',
+    provider: 'Wikimedia Commons · original 1920 feature',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Within_Our_Gates_(1920).webm',
+    filmSite: 'https://www.loc.gov/item/mbrs00046435/',
+    creator: 'Oscar Micheaux / Within Our Gates (1920)',
+    license: 'Public domain in the United States (1920 film)',
+    licenseUrl: 'https://commons.wikimedia.org/wiki/File:Within_Our_Gates_(1920).webm',
+    rightsNote: 'Wikimedia Commons marks this 1920 film public domain in the United States. Copyright and restoration rights can differ in other jurisdictions. This is the archived 77-minute silent version; confirm regional rights where necessary.',
+  },
   {
     id: 'valkaama',
     title: 'Valkaama',
