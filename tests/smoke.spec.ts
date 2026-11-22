@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { stubBigBuckBunnyVideo } from './media-fixture';
+import { stubWikimediaVideo } from './media-fixture';
 
 const sampleShows = [
   { id: 101, name: 'CINEX QA Alpha', summary: '<p>Adventure in space</p>', image: { medium: 'https://example.com/alpha.jpg' }, genres: ['Adventure'], rating: { average: 8.5 }, premiered: '2024-01-01', url: 'https://www.tvmaze.com/' },
@@ -144,13 +144,20 @@ test('screening room provides a visible Play control and updates state on play',
 
 
 test('screening room pause control reflects the paused video state', async ({ page }) => {
-  // A real, tiny 4-second media fixture exercises native browser play/pause,
-  // while staying independent of remote hosts and their transient errors.
-  await stubBigBuckBunnyVideo(page);
+  // Use a real VP8/WebM browser fixture to exercise native play and pause,
+  // without depending on a media CDN or patented codec support in Chromium.
+  await stubWikimediaVideo(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
+  await page.getByRole('button', { name: 'SWITCH VIDEO SOURCE' }).click();
+
   const player = page.locator('#screening video');
   await expect(player).toBeVisible();
+  await expect(page.locator('#screening video source')).toHaveAttribute('type', 'video/webm');
+  await expect.poll(async () =>
+    player.evaluate(element => (element as HTMLVideoElement).readyState)
+  ).toBeGreaterThanOrEqual(2);
+
   await page.getByRole('button', { name: 'Play film' }).click();
   const pause = page.getByRole('button', { name: 'Pause film' });
   await expect(pause).toBeVisible();
