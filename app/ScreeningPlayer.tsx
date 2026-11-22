@@ -24,6 +24,8 @@ const SOURCES = [
 
 const ORIGINAL_VIDEO = SOURCES[2].url;
 const OFFICIAL_FILM = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ';
+const OFFICIAL_EMBED = 'https://video.blender.org/videos/embed/pAQiVCgv2CsLg79KKXUoMw';
+const OFFICIAL_PAGE = 'https://video.blender.org/w/pAQiVCgv2CsLg79KKXUoMw';
 
 type PlayerStatus = 'loading' | 'ready' | 'buffering' | 'playing' | 'paused' | 'error';
 
@@ -45,6 +47,7 @@ const stateText: Record<PlayerStatus, string> = {
 
 export default function ScreeningPlayer() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [officialMode, setOfficialMode] = useState(true);
   const [sourceIndex, setSourceIndex] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -89,6 +92,8 @@ export default function ScreeningPlayer() {
 
   const retry = () => reload(sourceIndex);
   const nextSource = () => reload((sourceIndex + 1) % SOURCES.length);
+  const openDirectPlayer = () => { reload(0); setOfficialMode(false); };
+  const openOfficialPlayer = () => { videoRef.current?.pause(); setPlaying(false); setPlayRequested(false); setOfficialMode(true); };
 
   const togglePlayback = async () => {
     const video = videoRef.current;
@@ -118,6 +123,15 @@ export default function ScreeningPlayer() {
   return (
     <>
       <div className="video">
+        {officialMode ? (
+          <iframe
+            title="Big Buck Bunny — Blender Open Movies official player"
+            src={OFFICIAL_EMBED}
+            loading="lazy"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
         <video
           key={sourceIndex + '-' + attempt}
           ref={videoRef}
@@ -153,7 +167,22 @@ export default function ScreeningPlayer() {
           <source src={source.url} type={source.type} onError={fail} />
           Your browser does not support video playback.
         </video>
+        )}
       </div>
+      {officialMode ? (
+        <>
+          <div className="screening-controls">
+            <button type="button" className="btn" onClick={openDirectPlayer}>USE DIRECT PLAYER</button>
+            <a className="btn" href={OFFICIAL_PAGE} target="_blank" rel="noopener noreferrer">OPEN ON BLENDER</a>
+            <span>Watch the entire licensed film using Blender’s player controls.</span>
+          </div>
+          <div className="screening-status">
+            <span role="status">Official Blender Open Movies player</span>
+            <span>Full movie · 9:56 · CC BY 3.0</span>
+          </div>
+        </>
+      ) : (
+        <>
       <div className="screening-controls">
         <button
           type="button"
@@ -174,11 +203,14 @@ export default function ScreeningPlayer() {
         <span aria-label="Playback time">{formatTime(position)} / {formatTime(duration)}</span>
         <span>Source: {source.label}</span>
       </div>
-      {failed && (
+        </>
+      )}
+      {!officialMode && failed && (
         <div className="playback-recovery" role="alert">
           <p>The film could not load from the video host. Try another source or watch the official release.</p>
           <div className="actions">
-            <button type="button" className="btn primary" onClick={nextSource}>TRY ANOTHER SOURCE</button>
+            <button type="button" className="btn primary" onClick={openOfficialPlayer}>WATCH IN BLENDER PLAYER</button>
+            <button type="button" className="btn" onClick={nextSource}>TRY ANOTHER SOURCE</button>
             <button type="button" className="btn" onClick={retry}>RETRY PLAYBACK</button>
             <a className="btn" href={OFFICIAL_FILM} target="_blank" rel="noopener noreferrer">WATCH OFFICIAL FILM</a>
             <a className="btn" href={ORIGINAL_VIDEO} target="_blank" rel="noopener noreferrer">OPEN ORIGINAL VIDEO</a>
