@@ -306,3 +306,95 @@ test('open movies shelf remains selectable at 320px without horizontal overflow'
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(320);
 });
+
+
+test('feature cinema shows three full-length licensed films, not trailers', async ({ page }) => {
+  await page.goto('/');
+  const cinema = page.locator('.feature-cinema');
+  await expect(cinema.getByRole('heading', { name: 'Pick your film. Press play.' })).toBeVisible();
+  await expect(page.locator('.feature-film-card')).toHaveCount(3);
+  for (const title of ['Valkaama', 'Paywall: The Business of Scholarship', 'Sita Sings the Blues']) {
+    await expect(cinema.getByRole('button', { name: 'Play full movie ' + title })).toBeVisible();
+  }
+  await expect(cinema.getByText('1h 33m')).toBeVisible();
+  await expect(cinema.getByText('1h 5m')).toBeVisible();
+  await expect(cinema.getByText('1h 21m')).toBeVisible();
+  // Never autoplay an unrelated video before the user chooses one.
+  await expect(page.locator('#feature-player iframe')).toHaveCount(0);
+});
+
+test('choosing feature film opens full player with original source and rights', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play full movie Paywall: The Business of Scholarship' }).click();
+  const player = page.locator('#feature-player');
+  await expect(player.locator('iframe')).toHaveAttribute(
+    'src', 'https://www.youtube-nocookie.com/embed/NBFFa9Tc12c?rel=0'
+  );
+  await expect(player.locator('iframe')).toHaveAttribute('allowfullscreen', '');
+  await expect(player).toContainText('Creative Commons BY 4.0');
+  await expect(player.getByRole('link', { name: 'OPEN ORIGINAL PLAYER' })).toHaveAttribute(
+    'href', 'https://www.youtube.com/watch?v=NBFFa9Tc12c'
+  );
+  await expect(player.getByRole('link', { name: 'FILM & RIGHTS INFORMATION' })).toHaveAttribute(
+    'href', 'https://paywallthemovie.com/'
+  );
+  await player.getByRole('button', { name: 'CLOSE PLAYER' }).click();
+  await expect(player.locator('iframe')).toHaveCount(0);
+});
+
+test('choosing another feature unmounts prior iframe and changes correct source', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
+  await expect(page.locator('#feature-player iframe')).toHaveAttribute(
+    'src', 'https://www.youtube-nocookie.com/embed/RzTg7YXuy34?rel=0'
+  );
+  await page.getByRole('button', { name: 'Play full movie Valkaama' }).click();
+  await expect(page.locator('#feature-player iframe')).toHaveCount(1);
+  await expect(page.locator('#feature-player iframe')).toHaveAttribute(
+    'src', 'https://www.youtube-nocookie.com/embed/Lz39dmLPDZE?rel=0'
+  );
+  await expect(page.locator('#feature-player')).toContainText('Creative Commons BY-SA 3.0');
+});
+
+test('full movie search, genre and saved filters work without affecting discovery', async ({ page }) => {
+  await page.goto('/');
+  const search = page.getByRole('searchbox', { name: 'Search full movies' });
+  await search.fill('scholarship');
+  await expect(page.locator('.feature-film-card')).toHaveCount(1);
+  await expect(page.locator('.feature-film-card')).toContainText('Paywall');
+  await search.fill('');
+  await page.locator('.feature-cinema').getByRole('button', { name: 'Drama' }).click();
+  await expect(page.locator('.feature-film-card')).toHaveCount(1);
+  await expect(page.locator('.feature-film-card')).toContainText('Valkaama');
+  await page.locator('.feature-cinema').getByRole('button', { name: 'All films' }).click();
+  await expect(page.locator('.feature-film-card')).toHaveCount(3);
+  await page.getByRole('button', { name: 'Add to full movie watchlist: Valkaama' }).click();
+  await page.locator('.feature-cinema').getByRole('button', { name: 'My saved (1)' }).click();
+  await expect(page.locator('.feature-film-card')).toHaveCount(1);
+  await expect(page.locator('.feature-film-card')).toContainText('Valkaama');
+});
+
+test('feature cinema watchlist and last-selected title persist across reload', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Add to full movie watchlist: Sita Sings the Blues' }).click();
+  await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
+  await page.reload();
+  await expect(page.locator('#feature-player iframe')).toHaveCount(0);
+  await expect(page.locator('.feature-recent')).toContainText('Sita Sings the Blues');
+  await expect(page.getByRole('button', { name: 'Remove from full movie watchlist: Sita Sings the Blues' }))
+    .toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
+});
+
+test('feature cinema is usable on 320px mobile without page overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/');
+  const cinema = page.locator('.feature-cinema');
+  await expect(cinema.getByRole('button', { name: 'Play full movie Valkaama' })).toBeVisible();
+  await cinema.getByRole('button', { name: 'Play full movie Valkaama' }).click();
+  await expect(page.locator('#feature-player iframe')).toHaveAttribute(
+    'src', 'https://www.youtube-nocookie.com/embed/Lz39dmLPDZE?rel=0'
+  );
+  const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(pageWidth).toBeLessThanOrEqual(320);
+});
