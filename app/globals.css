@@ -18,3 +18,6 @@
 .screening-status [aria-label="Playback time"]{font-variant-numeric:tabular-nums;white-space:nowrap}
 .screening-controls .btn:disabled{opacity:.65;cursor:progress;transform:none;box-shadow:none}
 @media(max-width:480px){.screening-controls .btn{flex:1 1 140px}.screening-controls span{flex-basis:100%}}
+
+/* PeerTube is the primary, licensed Blender source; match the native player frame. */
+.video iframe{width:100%;height:100%;display:block;border:0;background:#05070c}
