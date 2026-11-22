@@ -21,3 +21,34 @@
 
 /* PeerTube is the primary, licensed Blender source; match the native player frame. */
 .video iframe{width:100%;height:100%;display:block;border:0;background:#05070c}
+
+/* Open Movies — restrained film-shelf treatment, distinct from the discovery grid. */
+.open-movies-library{margin-top:38px}
+.open-movies-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:19px}
+.open-movies-heading h3{font-family:'Space Grotesk',sans-serif;font-size:clamp(24px,2.8vw,35px);letter-spacing:-.045em;margin:0 0 5px}
+.open-movies-heading p{margin:0;font-size:13px;color:#9eacc2}
+.open-movies-heading>span{font-size:11px;letter-spacing:.04em;color:#88a5b6;white-space:nowrap}
+.open-movies-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.open-movie-choice{text-align:left;min-width:0;border-radius:12px;border:1px solid #ffffff20;background:#101827;color:#eef4fa;padding:7px 7px 12px;transition:background .2s,border-color .2s,transform .2s}
+.open-movie-choice:hover{background:#1b2840;transform:translateY(-3px)}
+.open-movie-choice.selected{border-color:#84d9eb;box-shadow:0 0 0 1px #84d9eb33;background:#18273b}
+.open-movie-artwork{display:block;position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:7px;background:#223049}
+.open-movie-artwork img{width:100%;height:100%;display:block;object-fit:cover}
+.open-movie-runtime{position:absolute;bottom:7px;right:7px;font-size:10px;font-variant-numeric:tabular-nums;color:white;border-radius:4px;background:#050910d9;padding:4px 6px}
+.open-movie-name{display:block;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;line-height:1.25;margin:11px 4px 4px;overflow-wrap:anywhere}
+.open-movie-year{display:block;font-size:10px;line-height:1.4;color:#a7b8ca;margin:0 4px;overflow-wrap:anywhere}
+.open-movie-current{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:28px 0 -18px}
+.open-movie-current>span:first-child{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#9eacc2}
+.open-movie-current strong{font-family:'Space Grotesk',sans-serif;font-size:22px;letter-spacing:-.035em}
+.open-movie-current>span:last-child{font-size:11px;color:#9eacc2;margin-left:auto}
+.open-movie-credits{display:flex;justify-content:space-between;align-items:flex-start;gap:28px;border-top:1px solid #ffffff20;padding-top:24px;margin-top:25px}
+.open-movie-credits h3{font-family:'Space Grotesk',sans-serif;font-size:24px;letter-spacing:-.04em;margin:0}
+.open-movie-credits p{max-width:660px;margin:8px 0 0;font-size:13px;line-height:1.7}
+.open-movie-credits .open-movie-tagline{font-size:12px;color:#84d9eb}
+.open-movie-links{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px 18px;max-width:345px}
+.open-movie-links a{color:#b4eaf4;font-size:11px;line-height:1.7;font-weight:800;text-align:right}
+.open-movie-links a:hover{text-decoration:underline}
+.open-movie-disclaimer{margin-top:23px}
+@media(max-width:1100px){.open-movies-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.open-movies-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.open-movies-heading{align-items:flex-start}.open-movies-heading>span{padding-top:4px}.open-movie-current>span:last-child{width:100%;margin:0}.open-movie-credits{flex-direction:column}.open-movie-links{justify-content:flex-start;max-width:none}.open-movie-links a{text-align:left}}
+@media(max-width:360px){.open-movie-choice{padding:5px 5px 10px}.open-movie-name{font-size:12px}.open-movie-year{font-size:10px}.open-movies-heading>span{font-size:10px}}
