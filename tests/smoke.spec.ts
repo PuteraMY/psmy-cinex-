@@ -401,7 +401,8 @@ test('new films are searchable and card count always represents real native stre
   await expect(page.locator('.feature-film-card')).toHaveCount(1);
   await expect(page.locator('.feature-film-card')).toContainText('Panopticon');
   await search.fill('Oscar Micheaux');
-  await expect(page.locator('.feature-film-card')).toHaveCount(0);
+  await expect(page.locator('.feature-film-card')).toHaveCount(1);
+  await expect(page.locator('.feature-film-card')).toContainText('Within Our Gates');
   await search.fill('historic silent');
   await expect(page.locator('.feature-film-card')).toHaveCount(1);
   await expect(page.locator('.feature-film-card')).toContainText('Within Our Gates');
