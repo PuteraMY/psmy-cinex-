@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { OpenMovie } from './openMovies';
 
 // This film is CC BY 3.0 (Blender Foundation). Prefer a working MP4 mirror;
 // retain a WebM fallback and Blender's original source if hosts change.
@@ -24,8 +25,6 @@ const SOURCES = [
 
 const ORIGINAL_VIDEO = SOURCES[2].url;
 const OFFICIAL_FILM = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ';
-const OFFICIAL_EMBED = 'https://video.blender.org/videos/embed/pAQiVCgv2CsLg79KKXUoMw';
-const OFFICIAL_PAGE = 'https://video.blender.org/w/pAQiVCgv2CsLg79KKXUoMw';
 
 type PlayerStatus = 'loading' | 'ready' | 'buffering' | 'playing' | 'paused' | 'error';
 
@@ -45,7 +44,7 @@ const stateText: Record<PlayerStatus, string> = {
   error: 'Video unavailable',
 };
 
-export default function ScreeningPlayer() {
+export default function ScreeningPlayer({ film }: { film: OpenMovie }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [officialMode, setOfficialMode] = useState(true);
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -125,8 +124,9 @@ export default function ScreeningPlayer() {
       <div className="video">
         {officialMode ? (
           <iframe
-            title="Big Buck Bunny — Blender Open Movies official player"
-            src={OFFICIAL_EMBED}
+            key={film.id}
+            title={film.title + " — Blender Open Movies official player"}
+            src={film.embedUrl}
             loading="lazy"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
@@ -172,13 +172,13 @@ export default function ScreeningPlayer() {
       {officialMode ? (
         <>
           <div className="screening-controls">
-            <button type="button" className="btn" onClick={openDirectPlayer}>USE DIRECT PLAYER</button>
-            <a className="btn" href={OFFICIAL_PAGE} target="_blank" rel="noopener noreferrer">OPEN ON BLENDER</a>
+            {film.id === "big-buck-bunny" && <button type="button" className="btn" onClick={openDirectPlayer}>USE DIRECT PLAYER</button>}
+            <a className="btn" href={film.officialPage} target="_blank" rel="noopener noreferrer">OPEN ON BLENDER</a>
             <span>Watch the entire licensed film using Blender’s player controls.</span>
           </div>
           <div className="screening-status">
             <span role="status">Official Blender Open Movies player</span>
-            <span>Full movie · 9:56 · CC BY 3.0</span>
+            <span>Full movie · {film.duration} · {film.license}</span>
           </div>
         </>
       ) : (
