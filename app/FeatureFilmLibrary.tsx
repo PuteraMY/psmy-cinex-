@@ -25,10 +25,10 @@ export default function FeatureFilmLibrary() {
       const stored = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
       if (Array.isArray(stored)) {
         setSavedIds(stored.filter((id): id is string => typeof id === 'string' &&
-          FEATURE_FILMS.some(movie => movie.id === id)));
+          CINEX_FEATURES.some(movie => movie.id === id)));
       }
       const last = localStorage.getItem(RECENT_KEY) || '';
-      if (FEATURE_FILMS.some(movie => movie.id === last)) setLastSelected(last);
+      if (CINEX_FEATURES.some(movie => movie.id === last)) setLastSelected(last);
     } catch {
       // Storage is optional (private browsing, disabled storage or stale data).
     }
