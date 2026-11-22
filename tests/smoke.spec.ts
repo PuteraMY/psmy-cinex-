@@ -248,3 +248,61 @@ test('failed direct player offers a return to the official hosted film', async (
   await expect(page.locator('#screening iframe')).toBeVisible();
   await expect(page.locator('#screening video')).toHaveCount(0);
 });
+
+
+test('open movie library displays all six original films with credits', async ({ page }) => {
+  await page.goto('/');
+  const group = page.getByRole('group', { name: 'Choose an open movie' });
+  const titles = ['Big Buck Bunny', 'Sintel', 'Tears of Steel', 'Elephants Dream', 'Spring', 'Caminandes 3: Llamigos'];
+  await expect(group.getByRole('button')).toHaveCount(titles.length);
+  for (const title of titles) {
+    await expect(group.getByRole('button', { name: 'Watch ' + title })).toBeVisible();
+  }
+  await expect(group.getByRole('button', { name: 'Watch Big Buck Bunny' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#screening iframe')).toHaveAttribute(
+    'src', 'https://video.blender.org/videos/embed/pAQiVCgv2CsLg79KKXUoMw'
+  );
+  await expect(page.locator('.open-movie-credits')).toContainText('CC BY 3.0');
+});
+
+test('film selection switches official embeds and updates license and source links', async ({ page }) => {
+  await page.goto('/');
+  const items = [
+    { name: 'Sintel', id: '2PcJe5aZqozRvH7MJ8BTmC', license: 'CC BY 3.0' },
+    { name: 'Tears of Steel', id: 'hs1zJY8mdr3iH2JNmxpeGV', license: 'CC BY 3.0' },
+    { name: 'Elephants Dream', id: 'rhMeBiBURa2KgsAfkC6kda', license: 'CC BY 2.5' },
+    { name: 'Spring', id: '8B5QmoLSS3mWJ4fmZZu3Ye', license: 'CC BY 4.0' },
+    { name: 'Caminandes 3: Llamigos', id: '5ruRYckTcQMTMQvyqMnVsr', license: 'CC BY 3.0' },
+  ];
+  for (const item of items) {
+    const choice = page.getByRole('button', { name: 'Watch ' + item.name });
+    await choice.click();
+    await expect(choice).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#screening iframe')).toHaveAttribute(
+      'src', 'https://video.blender.org/videos/embed/' + item.id
+    );
+    await expect(page.locator('#screening iframe')).toHaveAttribute(
+      'title', item.name + ' — Blender Open Movies official player'
+    );
+    await expect(page.locator('.open-movie-credits')).toContainText(item.name);
+    await expect(page.locator('.open-movie-credits')).toContainText(item.license);
+    await expect(page.getByRole('link', { name: 'OPEN ON BLENDER' }))
+      .toHaveAttribute('href', 'https://video.blender.org/w/' + item.id);
+    await expect(page.getByRole('button', { name: 'USE DIRECT PLAYER' })).toHaveCount(0);
+  }
+
+  await page.getByRole('button', { name: 'Watch Big Buck Bunny' }).click();
+  await expect(page.getByRole('button', { name: 'USE DIRECT PLAYER' })).toBeVisible();
+  await expect(page.locator('.open-movie-credits')).toContainText('bigbuckbunny.org');
+});
+
+test('open movies shelf remains selectable at 320px without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Watch Spring' }).click();
+  await expect(page.locator('#screening iframe')).toHaveAttribute(
+    'src', 'https://video.blender.org/videos/embed/8B5QmoLSS3mWJ4fmZZu3Ye'
+  );
+  const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(width).toBeLessThanOrEqual(320);
+});
