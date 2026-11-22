@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
 
 test('desktop/mobile navigation, refresh and filtering', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('ENTER THE')).toBeVisible();
+  await expect(page.getByText('CHOOSE YOUR')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
   await page.getByRole('searchbox', { name: 'Search titles' }).fill('quiet');
   await expect(page.getByRole('heading', { name: 'CINEX QA Beta' })).toBeVisible();
@@ -24,7 +24,7 @@ test('desktop/mobile navigation, refresh and filtering', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'CINEX QA Beta' })).toHaveCount(0);
   await page.reload();
-  await expect(page.getByText('EXTRAORDINARY.')).toBeVisible();
+  await expect(page.getByText('NEXT FILM.')).toBeVisible();
 });
 
 test('watchlist persists after reload and can be removed', async ({ page }) => {
@@ -60,7 +60,7 @@ test('API failure displays retry and recovers', async ({ page }) => {
 test('screening room has a real video element and declared MP4 source', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'USE DIRECT PLAYER' }).click();
-  await page.getByRole('button', { name: /WATCH A FILM/ }).click();
+  await page.getByRole('button', { name: /WATCH FREE FILMS/ }).click();
   await expect(page.locator('video')).toBeVisible();
   await expect(page.locator('video source')).toHaveAttribute('type', 'video/mp4');
   // This is not a playback certification: network-dependent play/pause/seek/fullscreen
@@ -313,9 +313,11 @@ test('feature cinema shows three full-length licensed films, not trailers', asyn
   const cinema = page.locator('.feature-cinema');
   await expect(cinema.getByRole('heading', { name: 'Pick your film. Press play.' })).toBeVisible();
   await expect(page.locator('.feature-film-card')).toHaveCount(3);
-  for (const title of ['Valkaama', 'Paywall: The Business of Scholarship', 'Sita Sings the Blues']) {
+  for (const title of ['Paywall: The Business of Scholarship', 'Sita Sings the Blues']) {
     await expect(cinema.getByRole('button', { name: 'Play full movie ' + title })).toBeVisible();
   }
+  await expect(cinema.getByRole('link', { name: 'Watch Valkaama on external provider' }))
+    .toHaveAttribute('href', 'https://www.youtube.com/watch?v=Lz39dmLPDZE');
   await expect(cinema.getByText('1h 33m')).toBeVisible();
   await expect(cinema.getByText('1h 5m')).toBeVisible();
   await expect(cinema.getByText('1h 21m')).toBeVisible();
@@ -340,25 +342,41 @@ test('licensed Paywall movie uses CINEX HTML5 player rather than YouTube', async
   await expect(player.getByRole('link', { name: 'OPEN ORIGINAL PLAYER' })).toHaveAttribute(
     'href', 'https://www.youtube.com/watch?v=NBFFa9Tc12c'
   );
-  await player.getByRole('button', { name: 'CLOSE PLAYER' }).click();
+  await player.getByRole('button', { name: 'Close player and return to library' }).click();
   await expect(player.locator('video')).toHaveCount(0);
 });
 
-test('switching films stops prior CINEX player and marks provider-only titles honestly', async ({ page }) => {
+test('switching CINEX films unmounts previous player and never embeds YouTube', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
   await expect(page.locator('#feature-player video source')).toHaveAttribute(
     'src', 'https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_480p_2150kbps.mp4'
   );
+  await expect(page.getByRole('dialog', { name: 'Now watching Sita Sings the Blues' })).toBeVisible();
   await expect(page.locator('#feature-player iframe')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Play full movie Valkaama' }).click();
+  await page.getByRole('button', { name: 'Close player and return to library' }).click();
   await expect(page.locator('#feature-player video')).toHaveCount(0);
-  await expect(page.locator('#feature-player iframe')).toHaveCount(1);
-  await expect(page.locator('#feature-player iframe')).toHaveAttribute(
-    'src', 'https://www.youtube-nocookie.com/embed/Lz39dmLPDZE?rel=0'
-  );
-  await expect(page.locator('#feature-player')).toContainText('Provider player');
-  await expect(page.locator('#feature-player')).toContainText('no verified direct HTML5 source');
+  await page.getByRole('button', { name: 'Play full movie Paywall: The Business of Scholarship' }).click();
+  await expect(page.locator('#feature-player video source')).toHaveAttribute('type', 'video/ogg');
+  await expect(page.locator('#feature-player iframe')).toHaveCount(0);
+  await expect(page.locator('iframe[src*="youtube"]')).toHaveCount(0);
+});
+
+test('licensed full movie opens an immersive accessible CINEX theater and closes with Escape', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Watch Free' })).toBeVisible();
+  const opener = page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' });
+  await opener.click();
+  const dialog = page.getByRole('dialog', { name: 'Now watching Sita Sings the Blues' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Close player and return to library' })).toBeFocused();
+  await expect(dialog.locator('video')).toBeVisible();
+  await expect(dialog.locator('iframe')).toHaveCount(0);
+  await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
 });
 
 test('native film error offers licensed source link rather than fake playback', async ({ page }) => {
@@ -419,7 +437,7 @@ test('feature cinema watchlist and last-selected title persist across reload', a
   await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
   await page.reload();
   await expect(page.locator('#feature-player iframe')).toHaveCount(0);
-  await expect(page.locator('.feature-recent')).toContainText('Sita Sings the Blues');
+  await expect(page.locator('.feature-recent-film')).toContainText('Sita Sings the Blues');
   await expect(page.getByRole('button', { name: 'Remove from full movie watchlist: Sita Sings the Blues' }))
     .toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('heading', { name: 'CINEX QA Alpha' })).toBeVisible();
@@ -429,11 +447,11 @@ test('feature cinema is usable on 320px mobile without page overflow', async ({ 
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto('/');
   const cinema = page.locator('.feature-cinema');
-  await expect(cinema.getByRole('button', { name: 'Play full movie Valkaama' })).toBeVisible();
-  await cinema.getByRole('button', { name: 'Play full movie Valkaama' }).click();
-  await expect(page.locator('#feature-player iframe')).toHaveAttribute(
-    'src', 'https://www.youtube-nocookie.com/embed/Lz39dmLPDZE?rel=0'
-  );
+  await expect(cinema.getByRole('button', { name: 'Play full movie Sita Sings the Blues' })).toBeVisible();
+  await cinema.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
+  await expect(page.getByRole('dialog', { name: 'Now watching Sita Sings the Blues' })).toBeVisible();
+  await expect(page.locator('#feature-player video')).toBeVisible();
+  await expect(page.locator('#feature-player iframe')).toHaveCount(0);
   const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(pageWidth).toBeLessThanOrEqual(320);
 });
