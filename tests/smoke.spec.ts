@@ -323,37 +323,76 @@ test('feature cinema shows three full-length licensed films, not trailers', asyn
   await expect(page.locator('#feature-player iframe')).toHaveCount(0);
 });
 
-test('choosing feature film opens full player with original source and rights', async ({ page }) => {
+test('licensed Paywall movie uses CINEX HTML5 player rather than YouTube', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Play full movie Paywall: The Business of Scholarship' }).click();
   const player = page.locator('#feature-player');
-  await expect(player.locator('iframe')).toHaveAttribute(
-    'src', 'https://www.youtube-nocookie.com/embed/NBFFa9Tc12c?rel=0'
+  const media = player.locator('video');
+  await expect(media).toBeVisible();
+  await expect(player.locator('iframe')).toHaveCount(0);
+  await expect(media.locator('source')).toHaveAttribute(
+    'src', "https://commons.wikimedia.org/wiki/Special:Redirect/file/2018_documentary_%27Paywall_%E2%80%93_The_Business_of_Scholarship%27.ogg"
   );
-  await expect(player.locator('iframe')).toHaveAttribute('allowfullscreen', '');
+  await expect(media.locator('source')).toHaveAttribute('type', 'video/ogg');
+  await expect(media).toHaveAttribute('controls', '');
+  await expect(player).toContainText('CINEX PLAYER · FULL FEATURE');
   await expect(player).toContainText('Creative Commons BY 4.0');
   await expect(player.getByRole('link', { name: 'OPEN ORIGINAL PLAYER' })).toHaveAttribute(
     'href', 'https://www.youtube.com/watch?v=NBFFa9Tc12c'
   );
-  await expect(player.getByRole('link', { name: 'FILM & RIGHTS INFORMATION' })).toHaveAttribute(
-    'href', 'https://paywallthemovie.com/'
-  );
   await player.getByRole('button', { name: 'CLOSE PLAYER' }).click();
-  await expect(player.locator('iframe')).toHaveCount(0);
+  await expect(player.locator('video')).toHaveCount(0);
 });
 
-test('choosing another feature unmounts prior iframe and changes correct source', async ({ page }) => {
+test('switching films stops prior CINEX player and marks provider-only titles honestly', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
-  await expect(page.locator('#feature-player iframe')).toHaveAttribute(
-    'src', 'https://www.youtube-nocookie.com/embed/RzTg7YXuy34?rel=0'
+  await expect(page.locator('#feature-player video source')).toHaveAttribute(
+    'src', 'https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_480p_2150kbps.mp4'
   );
+  await expect(page.locator('#feature-player iframe')).toHaveCount(0);
   await page.getByRole('button', { name: 'Play full movie Valkaama' }).click();
+  await expect(page.locator('#feature-player video')).toHaveCount(0);
   await expect(page.locator('#feature-player iframe')).toHaveCount(1);
   await expect(page.locator('#feature-player iframe')).toHaveAttribute(
     'src', 'https://www.youtube-nocookie.com/embed/Lz39dmLPDZE?rel=0'
   );
-  await expect(page.locator('#feature-player')).toContainText('Creative Commons BY-SA 3.0');
+  await expect(page.locator('#feature-player')).toContainText('Provider player');
+  await expect(page.locator('#feature-player')).toContainText('no verified direct HTML5 source');
+});
+
+test('native film error offers licensed source link rather than fake playback', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
+  const video = page.locator('#feature-player video');
+  await expect(video).toBeVisible();
+  await video.evaluate(element => element.dispatchEvent(new Event('error')));
+  const recovery = page.locator('#feature-player [role="alert"]');
+  await expect(recovery).toContainText('could not load');
+  await expect(recovery.getByRole('link', { name: 'OPEN LICENSED SOURCE' }))
+    .toHaveAttribute('href', 'https://www.sitasingstheblues.com/watch.html');
+});
+
+test('native CINEX player stores watched position for a later session', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
+  const video = page.locator('#feature-player video');
+  await expect(video).toBeVisible();
+  // Deterministic UI state test; does not certify playback from the remote host.
+  await video.evaluate(element => {
+    Object.defineProperty(element, 'currentTime', { configurable: true, get: () => 72 });
+    Object.defineProperty(element, 'duration', { configurable: true, get: () => 4891 });
+    element.dispatchEvent(new Event('loadedmetadata'));
+    element.dispatchEvent(new Event('timeupdate'));
+  });
+  await expect(page.locator('#feature-player').getByLabel('Video playback time'))
+    .toContainText('1:12');
+  await expect.poll(() => page.evaluate(() =>
+    localStorage.getItem('cinex-full-film-progress-v1-sita-sings-the-blues')
+  )).toBe('72');
+  await page.reload();
+  await page.getByRole('button', { name: 'Play full movie Sita Sings the Blues' }).click();
+  await expect(page.getByRole('button', { name: 'Resume Sita Sings the Blues from 1:12' })).toBeVisible();
 });
 
 test('full movie search, genre and saved filters work without affecting discovery', async ({ page }) => {
