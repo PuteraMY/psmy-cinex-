@@ -21,6 +21,7 @@ export default function CINEXFilmPlayer({ film }: { film: FeatureFilm }) {
   const [playing, setPlaying] = useState(false);
   const [savedPosition, setSavedPosition] = useState(0);
   const [fullScreen, setFullScreen] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     try {
@@ -113,7 +114,7 @@ export default function CINEXFilmPlayer({ film }: { film: FeatureFilm }) {
       </div>
       <div className="cinex-native-viewport" ref={container}>
         <video
-          key={film.id}
+          key={`${film.id}-${retryCount}`}
           ref={video}
           aria-label={'CINEX full movie player: ' + film.title}
           controls
@@ -162,7 +163,12 @@ export default function CINEXFilmPlayer({ film }: { film: FeatureFilm }) {
         <div className="cinex-native-error" role="alert">
           <p>This movie could not load in the CINEX player. It may be blocked by the video host or unsupported in this browser.</p>
           <div className="actions">
-            <a className="btn primary" target="_blank" rel="noopener noreferrer"
+            <button type="button" className="btn primary" onClick={() => {
+              setPlaying(false);
+              setState('loading');
+              setRetryCount(count => count + 1);
+            }}>RETRY IN CINEX</button>
+            <a className="btn" target="_blank" rel="noopener noreferrer"
               href={film.alternateSource || film.sourceUrl}>OPEN LICENSED SOURCE</a>
             <a className="btn" target="_blank" rel="noopener noreferrer"
               href={film.filmSite}>FILMMAKER WEBSITE</a>
