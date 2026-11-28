@@ -132,7 +132,8 @@ export default function CINEXFilmPlayer({ film }: { film: FeatureFilm }) {
           }}
           onError={() => { setState('unavailable'); setPlaying(false); }}
         >
-          <source src={film.nativeSource.url} type={film.nativeSource.type} />
+          <source src={film.nativeSource.url} type={film.nativeSource.type}
+            onError={() => { setState('unavailable'); setPlaying(false); }} />
           Your browser does not support this video format.
         </video>
       </div>
